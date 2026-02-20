@@ -1,0 +1,6 @@
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+*.zip
+**/.DS_Store

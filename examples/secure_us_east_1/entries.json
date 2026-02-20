@@ -1,0 +1,8 @@
+[
+  {
+    "Source": "my.test",
+    "DetailType": "testEvent",
+    "Detail": "{\"message\":\"hello secured world\"}",
+    "EventBusName": "app-events"
+  }
+]
