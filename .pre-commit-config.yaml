@@ -1,19 +1,16 @@
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.88.1
+    rev: v1.92.0
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
-  - repo: https://github.com/terraform-linters/tflint
-    rev: v0.50.3
+      - id: terraform_tflint
+        args: [ "--args=--init" ]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
     hooks:
-      - id: tflint
-  - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.337
-    hooks:
-      - id: checkov
-        args: ["-q"]
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-merge-conflict

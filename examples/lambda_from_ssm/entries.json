@@ -1,0 +1,8 @@
+[
+  {
+    "Source": "my.app",
+    "DetailType": "app.error",
+    "Detail": "{\"env\":\"dev\",\"message\":\"small test event\"}",
+    "EventBusName": "org-events"
+  }
+]

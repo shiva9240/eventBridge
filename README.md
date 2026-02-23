@@ -1,25 +1,40 @@
-# EventBridge Secure Module (No hardcoded values)
+# EventBridge Org Module (EventBridge-only)
 
-## What makes this secure
-- **No hardcoded ARNs required**: you can pass Lambda **function names** (or store them in **SSM Parameter Store**) and the module resolves ARNs dynamically.
-- **Least privilege**: Lambda permission is scoped per-rule via `source_arn`.
-- **Controlled payload**: Use `input_transformer` to pass only what's needed (avoid leaking PII to targets).
-- **Reliability**: Optional DLQ + retry policy per target.
-- **No secrets in repo**: tfvars are optional; you can drive values from SSM. Add `*.tfvars` to `.gitignore`.
+This repo provides an **EventBridge-only Terraform module** for org-level routing:
 
-## Using SSM instead of hardcoding
+- Create/reuse **Event Bus**
+- **Bus resource policies** (Org ID / allowed accounts)
+- **Multiple rules** with **event-pattern filtering**
+- Per-target **retry policy** and **DLQ** (SQS)
+- **Archive** for replay/audit
+- Optional **Schemas** (registry + discovery)
+- **SSM** lookup for target ARNs
+- **No Lambda/SQS/IAM created here** (owned by other teams)
+
+## Quickstart (local tooling)
+
 ```bash
-aws ssm put-parameter --name "/dev/lambda/orders_processor_name" \
-  --value "myLambda" --type String --overwrite --region us-east-1
+pip install pre-commit --upgrade
+pre-commit install
+
+make all      # init + fmt + tflint + validate
 ```
 
-Then in Terraform we read the name and resolve the ARN automatically.
+## Test by sending a sample event
 
-## Send a manual test event (Windows-friendly)
-Create `entries.json` and run:
-```powershell
-aws events put-events --region us-east-1 --entries file://entries.json
+```bash
+aws events put-events --region us-east-1 --entries '[
+  {
+    "Source":"my.app",
+    "DetailType":"app.error",
+    "Detail":"{"env":"dev","message":"simulated error"}",
+    "EventBusName":"org-events"
+  }
+]'
 ```
 
-## Optional: strict event bus policy (cross-account)
-Pass `bus_policy_json` with a **minimal** policy that whitelists only required principals and uses `Condition` keys like `aws:SourceAccount` and `aws:SourceArn`.
+## Hand-offs to other teams
+
+- **Lambda owners**: add `aws_lambda_permission` allowing `events.amazonaws.com` with `source_arn` = rule ARN (output `rule_arns`).
+- **SQS owners**: provide `role_arn` for EventBridge to `sqs:SendMessage` to the queue and its **DLQ**.
+- **Producers**: publish using `events:PutEvents` (granted via Org ID or account allow-list on the bus).
